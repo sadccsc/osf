@@ -34,6 +34,7 @@ if parseargs==True:
     domain=sys.argv[4]
     basetime=sys.argv[5]
     variable=sys.argv[6]
+    aggrfactor=int(sys.argv[7])
 else:
     datadir="./data"
     institution="ERA5"
@@ -41,6 +42,7 @@ else:
     domain="sadc"
     basetime="mon"
     variable="TX"
+    aggrfactor=5
 
 overwrite=False
 
@@ -69,6 +71,9 @@ if not os.path.exists(outputdir):
 #
 
 data=xr.open_mfdataset("{}/{}_mon_{}_{}_*.nc".format(inputdir,variable,institution,domain))
+
+if aggrfactor>1:
+    data=data.coarsen(lat=2).mean().coarsen(lon=2).mean()
 
 if "spatial_ref" in data.variables:
     data=data.drop_vars({"spatial_ref"})

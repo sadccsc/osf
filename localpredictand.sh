@@ -45,15 +45,16 @@ for item in ${parameters[@]}; do
 	item=(${item//,/ })
 	dataset=${item[0]}
 	datatype=${item[1]}
-        domain=${item[2]}
+    domain=${item[2]}
 	basetime=${item[3]}
 	variable=${item[4]}
+	aggrfactor=${item[5]}
 
 	datadir=$rootdir/data
-	args="$datadir $dataset $datatype $domain $basetime $variable"
+	args="$datadir $dataset $datatype $domain $basetime $variable $aggrfactor"
 	echo
 	echo "*********************************"
-	echo calling pycpt_singlefcst.py with $args
+	echo calling localpredictand.py with $args
 
 	python $scriptdir/localpredictand.py $args
 done
