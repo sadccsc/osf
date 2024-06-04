@@ -1,0 +1,19 @@
+{"UCSB.PRCP":"CHIRPS",
+    "UCSB.TMEAN":"CHIRTS",
+    "ERA5.TMEAN":"ERA5",
+    "PRCP":"rainfall",
+    "TMAX":"maximum temperature",
+    "TMIN":"minimum temperature",
+    "TMEAN":"mean temperature",
+    "T2m":"mean temperature",
+    "TX":"maximum temperature",
+    "TMAX":"maximum temperature",
+    "TN":"minimum temperature",
+    "TMIN":"minimum temperature",
+    "TMEAN":"mean temperature",
+    "T2m":"mean temperature",
+    "SEAS51":"ECMWF SEAS 5.1",
+    "METEOFRANCE8":"MeteoFrance System 8",
+    "MME01":"Multi-model ensemble (SEAS5.1 & Meteofrance System 8)"
+    }
+

@@ -1,0 +1,16 @@
+{
+ "PRCP": {"det":
+          ["Rainfall","det",0,300,10,"max","YlGnBu",0,300,10,"max","YlGnBu", "spearman","less than",0.3],
+         "det-absanom":
+          ["Rainfall","det-absanom",-100,100,10,"both","BrBG",-100,100,10,"both","BrBG", "spearman","less than",0.3],
+         "det-percanom":
+          ["Rainfall","det-percanom",-50,50,10,"both","BrBG",-50,50,10,"both","BrBG", "spearman","less than",0.3],
+         "prob-tercile":
+          ["Rainfall","prob-terc",0,100,10,"neither","BrBG",0,100,10,"neither","BrBG","genroc", "less than",0.5]},
+ "TX": {"det":
+          ["Maximum temperature","det",10,30,10,"max","Reds",10,30,10,"max","Reds", "spearman","less than",0.3],
+         "det-absanom":
+          ["Maximum temperature","det-absanom",-2,2,10,"both","RdBu_r",-2,2,10,"both","RdBu_r", "spearman","less than",0.3],
+         "prob-tercile":
+          ["Maximum temperature","prob-terc",20,40,10,"neither","BrBG",20,40,10,"neither","BrBG","genroc", "less than",0.5]}
+}

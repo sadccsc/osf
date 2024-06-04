@@ -1,0 +1,14 @@
+{
+    "sadc":[{
+        "east":  60,
+        "west": 5, 
+        "north": 10,
+        "south": -40},
+        "./gis/sadc_continental.geojson"],
+ "botswana":[{
+        "east":  30,
+        "west": 19, 
+        "north": -17,
+        "south": -27},
+        "./gis/botswana.geojson"]
+}

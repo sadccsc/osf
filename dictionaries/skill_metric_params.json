@@ -1,0 +1,10 @@
+{
+ "pearson":["Pearson's correlation","pearson",-1,1,10,"neither","BrBG",0.3,1,10,"neither","Blues", "pearson","less than",0.3],
+ "spearman":["Spearman's correlation","spearman",-1,1,10,"neither","BrBG",0.3,1,10,"neither","Blues","spearman", "less than",0.3],
+ "2afc":["2AFC score","two_alternative_forced_choice",0,100,10,"neither","BrBG",60,100,8,"neither","Blues","two_alternative_forced_choice", "less than",60],
+ "rocbelow":["ROC score for below normal","roc_area_below_normal",0,100,10,"neither","BrBG",50,100,10,"neither","Blues","roc_area_below_normal", "less than",50],
+ "rocabove":["ROC scoare for above normal","roc_area_above_normal",0,100,10,"neither","BrBG",50,100,10,"neither","Blues","roc_area_above_normal", "less than",50],
+ "genroc":["Generalized ROC","generalized_roc",0,100,10,"neither","BrBG",50,100,10,"neither","Blues","generalized_roc", "less than",50],
+ "rpss":["Rank Probability Skill Score (RPSS)","rank_probability_skill_score",-100,100,10,"neither","BrBG",60,100,8,"neither","Blues","rank_probability_skill_score","less than",60]
+}
+
