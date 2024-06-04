@@ -106,6 +106,7 @@ predictor_domain_file="./dictionaries/predictor_domains.json"
 predictand_domain_file="./dictionaries/predictand_domains.json"
 obs_ncvars_file="./dictionaries/obs_ncvars.json"
 labels_file="./dictionaries/labels.json"
+local_predictands_file="./dictionaries/local_predictands.json"
 
 
 #this defines level of messages that this script is going to return to log
@@ -146,9 +147,6 @@ else:
         "det-absanom",
         "prob-tercile"]
 
-#this defines predictands that will be read locally and not downloaded from IRI
-local_predictands=["ERA5.TMEAN"]
-
 #these lead time will be calculated for different basetimes
 leadtimes={"seas": [0,1,2,3],
         "mon": [0,1,2,3,4]}
@@ -181,6 +179,9 @@ labels=parse_json(labels_file)
 source=read_dict(labels,model,"labels")
 full_source_name="{} model".format(source)
     
+
+local_predictands=parse_json(local_predictands_file)
+
 
 # ============================================================================================
 # picking up parameters for the requested forecast
@@ -272,9 +273,9 @@ for lead_time in [0]:
     if verbose:
         print("predictand:", predictand_name)
 
-    if predictand_name in local_predictands:
+    if predictand_name in local_predictands["code"]:
         # internal parameter of pycpt - if set, then local file is used as predictand
-        local_predictand_file = "{}/{}/{}/{}/{}_{}_{}.tsv".format(localpredictorrootdir,predictand_institution,basetime,predictand_domain,predictand_var,basetime, target_seas)
+        local_predictand_file = "{}/{}/{}/{}/{}/{}.{}_{}.tsv".format(localpredictandrootdir,predictand_institution,basetime,predictand_domain,predictand_var,predictand_var,predictand_institution,target_seas)
         print("using local predictand {}".format(local_predictand_file))
         
         if not os.path.exists(local_predictand_file):

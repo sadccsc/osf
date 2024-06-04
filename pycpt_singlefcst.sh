@@ -28,18 +28,23 @@ else
     fi 
 fi
 
-#if two or more arguments - set start date
-if [ $# -ge 2 ]; then
-    startdate=$2
-else
-    startdate=$(date +"%Y%m%d" -d "$enddate - 1 months")
-fi
-
 #if script receives three arguments - set end date
 if [ $# == 3 ]; then
     enddate=$3
 else
     enddate=$(date +"%Y%m%d")
+    currentday=$(date +"%d")
+    if [ $currentday -le 15 ]; then
+        enddate=$(date +"%Y%m%d" -d "$startdate - 1 months")
+    fi
+fi
+
+
+#if two or more arguments - set start date
+if [ $# -ge 2 ]; then
+    startdate=$2
+else
+    startdate=$(date +"%Y%m%d" -d "$enddate - 0 months")
 fi
 
 echo listfile: $lstfile
