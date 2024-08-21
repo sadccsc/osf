@@ -1,0 +1,10 @@
+# this is the list of forecasts to be processed
+#SEAS51,GPH,saf,UCSB,PRCP,sadc,CCA,seas,both,0
+METEOFRANCE8,GPH,saf,UCSB,PRCP,sadc,CCA,seas,both,0
+#GCFS2p1,GPH,saf,UCSB,PRCP,sadc,CCA,seas,both,0
+#SPSv3p5,GPH,saf,UCSB,PRCP,sadc,CCA,seas,both,0
+#SPEAR,GPH,saf,UCSB,PRCP,sadc,CCA,seas,both,0
+#CCSM4,GPH,saf,UCSB,PRCP,sadc,CCA,seas,both,0
+#GEOSS2S,GPH,saf,UCSB,PRCP,sadc,CCA,seas,both,0
+#CFSv2,GPH,saf,UCSB,PRCP,sadc,CCA,seas,both,0
+#CanSIPSIC3,GPH,saf,UCSB,PRCP,sadc,CCA,seas,both,0

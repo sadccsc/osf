@@ -1,0 +1,65 @@
+# this is the list of forecasts to be processed
+# system,predictor_variable,predictor_domain,predictand_institution,predictand_variable,predictand_domain,MOS,basetime,plot_mask,overwrite
+# predictand_institution: as per IRI database, alternatively: 
+#MOS is either PCR or CCA
+#plot_mask: either both (skill-masked and non-skill-masked maps plotted)
+#overwrite: 0 - no, 1-yes
+#
+# these are members of the adopted ensemble
+# rainfall on seasonal base time
+#SEAS51,SST,global,UCSB,PRCP,sadc,PCR,seas,both,0
+#CFSv2,SST,global,UCSB,PRCP,sadc,PCR,seas,both,0
+#CCSM4,SST,global,UCSB,PRCP,sadc,PCR,seas,both,0
+#GEOSS2S,SST,global,UCSB,PRCP,sadc,PCR,seas,both,0
+#
+#rainfall on monthly base time
+#SEAS51,SST,global,UCSB,PRCP,sadc,PCR,mon,both,0
+#CFSv2,SST,global,UCSB,PRCP,sadc,PCR,mon,both,0
+#CCSM4,SST,global,UCSB,PRCP,sadc,PCR,mon,both,0
+#GEOSS2S,SST,global,UCSB,PRCP,sadc,PCR,mon,both,0
+#
+# air temperature on seasonal time scale 
+SEAS51,T2M,sadc,ERA5,TG,sadc,PCR,seas,both,0
+#CFSv2,T2M,sadc,ERA5,TG,sadc,PCR,seas,both,0
+#CCSM4,T2M,sadc,ERA5,TG,sadc,PCR,seas,both,0
+#GEOSS2S,T2M,sadc,ERA5,TG,sadc,PCR,seas,both,0
+
+# air temperature on monthly time scale 
+#SEAS51,T2M,sadc,ERA5,TG,sadc,PCR,mon,both,0
+#CFSv2,T2M,sadc,ERA5,TG,sadc,PCR,mon,both,0
+#CCSM4,T2M,sadc,ERA5,TG,sadc,PCR,mon,both,0
+#GEOSS2S,T2M,sadc,ERA5,TG,sadc,PCR,mon,both,0
+
+#rx5day on seasonal base time
+#SEAS51,SST,global,CHIRPS-v2.0-p05-merged,Rx5day,sadc,PCR,seas,both,0
+#CFSv2,SST,global,CHIRPS-v2.0-p05-merged,Rx5day,sadc,PCR,seas,both,0
+#CCSM4,SST,global,CHIRPS-v2.0-p05-merged,Rx5day,sadc,PCR,seas,both,0
+#GEOSS2S,SST,global,CHIRPS-v2.0-p05-merged,Rx5day,sadc,PCR,seas,both,0
+#
+
+#CDD on seasonal base time
+#SEAS51,SST,global,CHIRPS-v2.0-p05-merged,CDD,sadc,PCR,seas,both,0
+#CFSv2,SST,global,CHIRPS-v2.0-p05-merged,CDD,sadc,PCR,seas,both,0
+#CCSM4,SST,global,CHIRPS-v2.0-p05-merged,CDD,sadc,PCR,seas,both,0
+#GEOSS2S,SST,global,CHIRPS-v2.0-p05-merged,CDD,sadc,PCR,seas,both,0
+#
+#Rx5day on seasonal base time
+#SEAS51,SST,global,CHIRPS-v2.0-p05-merged,Rx5day,sadc,PCR,seas,both,0
+#CFSv2,SST,global,CHIRPS-v2.0-p05-merged,Rx5day,sadc,PCR,seas,both,0
+#CCSM4,SST,global,CHIRPS-v2.0-p05-merged,Rx5day,sadc,PCR,seas,both,0
+#GEOSS2S,SST,global,CHIRPS-v2.0-p05-merged,Rx5day,sadc,PCR,seas,both,0
+#
+# these can potentially be included in the ensemble, but they are discontinued on IRI and the replacements ones are not yet available
+# once they are available - these can be activated and added to the ensemble
+#SPEAR,SST,global,UCSB,PRCP,sadc,PCR,seas,both,0
+#CanSIPSIC3,SST,global,UCSB,PRCP,sadc,PCR,seas,both,0
+#SPEAR,SST,global,UCSB,PRCP,sadc,PCR,mon,both,0
+#CanSIPSIC3,SST,global,UCSB,PRCP,sadc,PCR,mon,both,0
+#
+#
+# these are the remaining models that were shown to have limited skill for rainfall forecast
+#METEOFRANCE8,SST,global,UCSB,PRCP,sadc,PCR,seas,both,0
+#GCFS2p1,SST,global,UCSB,PRCP,sadc,PCR,seas,both,0
+#SPSv3p5,SST,global,UCSB,PRCP,sadc,PCR,seas,both,0
+#
+

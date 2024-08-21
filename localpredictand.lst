@@ -1,6 +1,0 @@
-#ERA5,reanalysis,sadc,seas,TN,1
-#ERA5,reanalysis,sadc,seas,TX,1
-CHIRPS-v2.0-p05-merged,observed,sadc,seas,PRCPTOT,5
-#CHIRPS-v2.0-p05-merged,observed,sadc,seas,CDD,5
-#CHIRPS-v2.0-p05-merged,observed,sadc,seas,R20mm,5
-#CHIRPS-v2.0-p05-merged,observed,sadc,seas,Rx5day,5

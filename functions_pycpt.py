@@ -57,9 +57,9 @@ def parse_json(_jsonfile):
         return adict
 
 def read_dict(_dict,_key,_label):
-
+    print(_key, _label)
     if _key not in _dict.keys():
-        print("ERROR: There is no entry for requested key {} in {} dictionary: {}".format(_key, _label))
+        print("ERROR: There is no entry for requested key {} in {} dictionary".format(_key, _label))
         sys.exit()
     else:
          return _dict[_key]

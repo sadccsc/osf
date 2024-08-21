@@ -1,0 +1,5 @@
+# this is the list of forecasts to be processed
+#SEAS51,SST,nino34,UCSB,PRCP,sadc,PCR,seas,both,0
+#SEAS51,SST,global,UCSB,PRCP,sadc,PCR,seas,both,0
+#SEAS51,PRCP,sadc,UCSB,PRCP,sadc,PCR,seas,both,0
+SEAS51,GPH,saf,UCSB,PRCP,sadc,PCR,seas,both,0

@@ -32,36 +32,32 @@ labels=parse_json(labels_file)
 fcst_metric_params=parse_json(fcst_metric_params_file)
 skill_metric_params=parse_json(skill_metric_params_file)
 
-def plot_forecast(_predictor_name, _predictand_var, _fcstdata, _skilldata, _obsdata,_metric,_fcstvar_label, _basetime, _target_year_label, _target_seas, _initdate_label, _predictand_dataset_label, _first_hindcast_year, _last_hindcast_year, _overlayfile,_mapfile, _source,_do_mask):
-    
-  
-    if _metric in skill_metric_params:
-        _pycpt_metric_name=skill_metric_params[_metric][1]
-    elif _metric in fcst_metric_params[_predictand_var].keys():
-        _pycpt_metric_name=fcst_metric_params[_predictand_var][_metric][1]
-    else:
-        print("ERROR. Requested {} but only {} described in skill_metric_params and {} in fcst_metric_params".format(_metric, ",".join(list(skill_metric_params.keys())), ",".join(list(fcst_metric_params[_predictand_var].keys()))))
-        sys.exit()        
-        
-    if _metric in ["det","det-absanom","det-percanom","prob-tercile"]:
-        #common for all forecast metrics
-        _metric_label=fcst_metric_params[_predictand_var][_metric][0]
-        _skillmetric=fcst_metric_params[_predictand_var][_metric][12]
-        _plotparams=get_plotparams(_fcstdata, _metric, _do_mask, fcst_metric_params[_predictand_var])
-        _cbar_label=units[_predictand_var]
-        _pycpt_skillmetric_name=skill_metric_params[_skillmetric][1]
 
+def plot_forecast(_predictand_category, _fcstdata, _skilldata, _obsdata,_metric,_fcstvar_label, _basetime, _target_year_label, _target_seas, _initdate_label, _predictand_dataset_label, _first_hindcast_year, _last_hindcast_year, _overlayfile,_mapfile, _source,_do_mask):
+    #_metric is "internal" metric name used by this script and dictonaries. It is used to create meaningful file names
+    #_pycpt_metric_name - is name used in pycpt
+    #_maskmetric - is the "internal" code for mask used here
+    #_pycpt_maskmetric_name - is name of the metric used in pycpt
+    #
+
+    if _metric in skill_metric_params:
+        _pycpt_metric_name=skill_metric_params[_metric][0]
+    elif _metric in fcst_metric_params[_predictand_category].keys():
+        _pycpt_metric_name=fcst_metric_params[_predictand_category][_metric][0]
+    else:
+        print("ERROR. Requested {} but only {} described in skill_metric_params and {} in fcst_metric_params".format(_metric, ",".join(list(skill_metric_params.keys())), ",".join(list(fcst_metric_params[_predictand_category].keys()))))
+        sys.exit()
+
+    _metric_label=labels[_metric]
+
+    if _metric in ["det","det-absanom","det-percanom","prob-tercile"]:
+        #this is for all forecast maps
         if _metric=="det":
             _data=_fcstdata["deterministic"].copy()
             _title="Forecast of {} in {} {}\nissued in {}".format(_fcstvar_label, _target_seas,_target_year_label, _initdate_label)
 
-
         elif _metric=="det-absanom":
             _data=_fcstdata["deterministic"].copy()-_obsdata.mean("T")
-    #        if _fcstvar_label=="rainfall":
-    #            _vmin,_vmax,_ncat,_extend,_cmap=0,800,10,"max","BrBG"
-    #        elif _fcstvar_label=="mean temperature":
-    #            _vmin,_vmax,_ncat,_extend,_cmap=-3,3,10,"both","RdBu_r"
             _title="Forecast of {} in {} {} (absolute anomaly) \nissued in {}".format(_fcstvar_label, _target_seas,_target_year_label, _initdate_label)
 
         elif _metric=="det-percanom":
@@ -79,15 +75,21 @@ def plot_forecast(_predictor_name, _predictand_var, _fcstdata, _skilldata, _obsd
             _data=_data.max("C")
             _title="Probabilistic (tercile) forecast of {} for {} {}\nissued in {}".format(_fcstvar_label, _target_seas,_target_year_label, _initdate_label)
 
+        #common for all forecast metrics
+        _plotparams=get_plotparams(_data, _metric, _do_mask, fcst_metric_params[_predictand_category])
+        _cbar_label=units[_predictand_category]
+        _maskmetric=fcst_metric_params[_predictand_category][_metric][11]
+        _pycpt_maskmetric_name=skill_metric_params[_maskmetric][0]
+
     else:
         #this is for all skill maps
         _data=_skilldata[_pycpt_metric_name].copy()
         _plotparams=get_plotparams(_data, _metric, _do_mask,skill_metric_params)
-        _title="Forecast skill ({})\nfor forecast of {} in {} {}\nissued in {}".format(skill_metric_params[_metric][0], _fcstvar_label, _target_seas,_target_year_label, _initdate_label)
-        _skillmetric=_metric
-        _metric_label=skill_metric_params[_skillmetric][0]
+        _title="Forecast skill ({})\nfor forecast of {} in {} {}\nissued in {}".format(_metric_label, _fcstvar_label, _target_seas,_target_year_label, _initdate_label)
+        # skill will be masked by itself
+        _maskmetric=_metric
+        _pycpt_maskmetric_name=skill_metric_params[_maskmetric][0]
         _cbar_label="score"
-        _pycpt_skillmetric_name=skill_metric_params[_skillmetric][1]
         
         
     _annotation="Source: {} calibrated at SADC CSC\n".format(_source)
@@ -95,22 +97,24 @@ def plot_forecast(_predictor_name, _predictand_var, _fcstdata, _skilldata, _obsd
     
     if _do_mask:
         print("masking...")
-        _maskdata=_skilldata[_pycpt_skillmetric_name].copy()
-        _masktype=skill_metric_params[_skillmetric][13]
-        _skillmetric_label=skill_metric_params[_skillmetric][0]
+        _maskdata=_skilldata[_pycpt_maskmetric_name].copy()
+        _masktype=skill_metric_params[_maskmetric][12]
+        _maskmetric_label=labels[_maskmetric]
         #might need expanding, if there is a need to have a different mask some time in the future 
         if _masktype=="less than":
-            _thresh=skill_metric_params[_skillmetric][14]
+            _thresh=skill_metric_params[_maskmetric][13]
             _maskdata=_maskdata>_thresh
             _signlabel="less than {}".format(_thresh)
         else:
             #might need expanding if other types are necessary
+            print("masktype:", _masktype)
             cont=True
             sys.exit()
-        _annotation="{}\nSkill evaluated by {} against {} data over {}-{} period".format(_annotation,_skillmetric_label, _predictand_dataset_label, _first_hindcast_year,_last_hindcast_year)
-        _annotation="{}\nValues where {} is {} are masked out".format(_annotation,_skillmetric_label,_signlabel)
+        _annotation="{}\nSkill evaluated by {} against {} data over {}-{} period".format(_annotation,_metric_label, _predictand_dataset_label, _first_hindcast_year,_last_hindcast_year)
+        _annotation="{}\nValues where {} is {} are masked out".format(_annotation,_maskmetric_label,_signlabel)
         _data=_data.where(_maskdata)
 
+    print("plotting map")
 
     plot_map(_data,
                  _plotparams["cmap"],
@@ -135,9 +139,7 @@ def plot_forecast(_predictor_name, _predictand_var, _fcstdata, _skilldata, _obsd
 
 
 def plot_map(_data,_cmap,_vmin,_vmax,_levels,_ticklabels,_norm, _extend, _cbar_label,_title, _annotation,_maskdata, _type, _filename, _overlayfile, _logofile, _plotbackground=False):
-
     _clip=False
-    print(_overlayfile)
     if _overlayfile: 
         overlay = geopandas.read_file(_overlayfile)
         _clip=True
@@ -254,7 +256,7 @@ def get_cmap(_data, _cmap, _vmin,_vmax,_ncat,_centre, _extend):
     if _vmax=="auto":
         #if vmax is to be calculated automatically
         _vmax=np.nanquantile(_data, 0.95)
-        _vmax=neat_vmax(_vmax)
+        _vmax=neat_vmax(_vmax,_ncat)
     if _vmin=="auto":
         #_vmin will be symmetrical around 0 to vmax
         _vmin=-_vmax
@@ -277,9 +279,8 @@ def get_cmap(_data, _cmap, _vmin,_vmax,_ncat,_centre, _extend):
 
         
 def get_plotparams(_data,_metric, do_mask,_params):
-    
     if _metric in _params.keys():
-        label,plotvarCode,vmin,vmax,ncat,extend,cmap,mask_vmin,mask_vmax,mask_ncat,mask_extend,mask_cmap,maskvar,masktype,maskthresh=_params[_metric]
+        plotvarCode,vmin,vmax,ncat,extend,cmap,mask_vmin,mask_vmax,mask_ncat,mask_extend,mask_cmap,maskvar,masktype,maskthresh=_params[_metric]
         if do_mask:
             paramdict=get_cmap(_data,mask_cmap,mask_vmin,mask_vmax,mask_ncat,None,mask_extend)
         else:
@@ -292,7 +293,24 @@ def get_plotparams(_data,_metric, do_mask,_params):
 
 
 
-
+def neat_vmax(_vmax,_ncat):
+    #nominal step
+    step=_vmax/_ncat
+    nofzeros=np.floor(np.log10(step))
+    #normalized step
+    stepnorm=step/10**nofzeros #this will always be between 1 and 10
+    #all possible steps
+    allsteps=np.array([1,1.5,2,2.5,3,4,5,7.5,10])
+    #how close is nominal step from normalized step
+    xx=np.abs(allsteps-stepnorm)
+    #selecting the closest step
+    sel=np.where(xx==np.min(xx))[0][0]
+    #final step
+    finalstep=allsteps[sel]
+    
+    finalvmax=finalstep*_ncat
+    finalvmax=finalvmax*10**nofzeros
+    return(finalvmax)
        
 
 

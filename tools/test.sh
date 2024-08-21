@@ -1,0 +1,1 @@
+./onemodel.sh onemodel.lst

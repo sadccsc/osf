@@ -1,0 +1,5 @@
+add check on date span in localpredictand.py
+info about entries in dictionaries
+update readme - what needs to be added to python env - geopandas and rioxarray, perhaps some other stuff?
+
+

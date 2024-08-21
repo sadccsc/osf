@@ -1,0 +1,15 @@
+#ERA5,reanalysis,sadc,seas,TN,1,mean
+#ERA5,reanalysis,sadc,seas,TX,1,mean
+ERA5,reanalysis,sadc,seas,TG,1,mean
+#ERA5,reanalysis,sadc,mon,TG,1,mean
+
+CHIRPS-v2.0-p05-merged,observed,sadc,seas,CDD,5,mean
+#CHIRPS-v2.0-p05-merged,observed,sadc,seas,R20mm,5,mean
+CHIRPS-v2.0-p05-merged,observed,sadc,seas,Rx5day,5,max
+
+#CHIRPS-v2.0-p05-merged,observed,sadc,mon,CDD,5,mean
+#CHIRPS-v2.0-p05-merged,observed,sadc,mon,R20mm,5,mean
+#CHIRPS-v2.0-p05-merged,observed,sadc,mon,Rx5day,5,max
+
+#CHIRPS-v2.0-p05-merged,observed,sadc,mon,PRCPTOT,5,none
+

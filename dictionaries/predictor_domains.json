@@ -24,10 +24,10 @@
         "north": 60,
         "south": -60},
     "saf":{
-        "east":  -60,
-        "west": 30, 
+        "east":  60,
+        "west": -30, 
         "north": 10,
-        "south": -60}, 
+        "south": -50}, 
     "sadc":{
         "east":  60,
         "west": 5, 

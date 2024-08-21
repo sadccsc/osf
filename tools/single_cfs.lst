@@ -1,0 +1,5 @@
+# this is the list of forecasts to be processed
+CFSv2,SST,nino34,UCSB,PRCP,sadc,PCR,both,0
+CFSv2,SST,global,UCSB,PRCP,sadc,PCR,both,0
+CFSv2,PRCP,sadc,UCSB,PRCP,sadc,PCR,both,0
+CFSv2,GPH,saf,UCSB,PRCP,sadc,PCR,both,0

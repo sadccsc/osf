@@ -1,4 +1,9 @@
-{"UCSB.PRCP":"prcp",
-    "UCSB.TMEAN":"tmean",
-    "ERA5.TMEAN":"TMEAN"
+{"UCSB.PRCP":["prcp","rainfall"],
+  "CHIRPS-v2.0-p05-merged.PRCPTOT":["PRCPTOT","rainfall"],
+  "CHIRPS-v2.0-p05-merged.CDD":["CDD","number_of_days"],
+  "CHIRPS-v2.0-p05-merged.Rx5day":["Rx5day","max_daily_rainfall"],
+  "CHIRPS-v2.0-p05-merged.R20mm":["R20mm","number_of_days"],
+  "UCSB.TMEAN":["tmean","mean_temperature"],
+  "ERA5.TMEAN":["TMEAN","mean_temperature"],
+  "ERA5.TG":["TG","mean_temperature"]
 }

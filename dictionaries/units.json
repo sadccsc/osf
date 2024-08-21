@@ -1,4 +1,6 @@
-{"PRCP":"mm",
-        "TMEAN":"degC",
-        "TMIN":"degC",
-        "TMAX":"degC"}
+{"rainfall":"mm",
+        "minimum_temperature":"degC",
+        "maximum_temperature":"degC",
+        "number_of_days":"days",
+        "max_daily_rainfall":"mm",
+        "mean_temperature":"degC"}

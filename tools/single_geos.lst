@@ -1,0 +1,5 @@
+# this is the list of forecasts to be processed
+GEOSS2S,SST,nino34,UCSB,PRCP,sadc,PCR,both,0
+GEOSS2S,SST,global,UCSB,PRCP,sadc,PCR,both,0
+GEOSS2S,PRCP,sadc,UCSB,PRCP,sadc,PCR,both,0
+GEOSS2S,GPH,saf,UCSB,PRCP,sadc,PCR,both,0

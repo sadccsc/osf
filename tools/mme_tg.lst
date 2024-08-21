@@ -1,0 +1,5 @@
+# this is the list of forecasts to be processed
+#this is the one that should be used - but there appears to be an issue with SPEAR and CanSIPS
+#MME02,UCSB,PRCP,sadc,seas,both,0,SEAS51,SST,global,PCR,CFSv2,SST,global,PCR,CCSM4,SST,global,PCR,GEOSS2S,SST,global,PCR,SPEAR,SST,global,PCR,CanSIPSIC3,SST,global,PCR
+#MME01,UCSB,PRCP,sadc,seas,both,0,SEAS51,SST,global,PCR,CFSv2,SST,global,PCR,CCSM4,SST,global,PCR,GEOSS2S,SST,global,PCR
+MME01,ERA5,TG,sadc,seas,both,0,SEAS51,T2M,sadc,PCR,CFSv2,T2M,sadc,PCR,CCSM4,T2M,sadc,PCR,GEOSS2S,T2M,sadc,PCR
