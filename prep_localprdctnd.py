@@ -50,7 +50,7 @@ overwrite=False
 #this is missing value present in the input file
 missingvalue=-999
 
-firstyear=1992
+firstyear=1991
 lastyear=2024
 
 if basetime not in ["mon","seas"]:
@@ -121,9 +121,10 @@ else:
 for fcstmonth in range(12):
     #Rolling operation gives time value of the last time step in the rolling window
     #months are indexed from 0, but 0 corresponds to calendar month 1
-    data1=data.sel(time=data.time.dt.month==(fcstmonth+1)).sel(time=slice(str(firstyear),str(lastyear)))
     seasonname=seasons[fcstmonth]
+    data1=data.sel(time=data.time.dt.month==(fcstmonth+1))
 
+    print(seasonname, fcstmonth, data1.time.data[0])
     if basetime=="seas":
         # deriving season name
         #pycpt data have to have date of the middle month of the season, thus date is now offset by one month
@@ -131,8 +132,20 @@ for fcstmonth in range(12):
     else:
         data1["time"]=(pd.to_datetime(data1.time)+pd.DateOffset(days=15)).normalize()
 
+    #this is because IRI data for DJF starts in 1992 and not 1991
+    if seasonname in ["DJF"]:
+        firstyear_adj=firstyear+1
+    else:
+        firstyear_adj=firstyear
+
+    data1=data1.sel(time=slice(str(firstyear_adj),str(lastyear)))
+    print(data1.time.data[0])
+
     #renaming variables to the ones used by pycpt
     data1=data1.rename({"lon":"X", "lat":"Y", "time":"T"})
+    if "number" in data1.variables:
+        data1=data1.drop_vars("number")
+
     #adding attributes
     data1[variable].attrs={"missing":missingvalue, "units":"degC"}
 
@@ -151,6 +164,7 @@ for fcstmonth in range(12):
         else:
             print("outputfile exists, and there is no new data to add {}".format(outputfile))
             writefile=False
+            writefile=True
     else:
         writefile=True
         

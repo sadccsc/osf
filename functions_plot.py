@@ -124,6 +124,7 @@ def plot_forecast(_predictand_category, _fcstdata, _skilldata, _obsdata,_metric,
                  _plotparams["ticklabels"],
                  _plotparams["norm"],
                  _plotparams["extend"],
+                 _predictand_category,
                  _cbar_label,
                  _title,
                  _annotation,
@@ -138,7 +139,7 @@ def plot_forecast(_predictand_category, _fcstdata, _skilldata, _obsdata,_metric,
 
 
 
-def plot_map(_data,_cmap,_vmin,_vmax,_levels,_ticklabels,_norm, _extend, _cbar_label,_title, _annotation,_maskdata, _type, _filename, _overlayfile, _logofile, _plotbackground=False):
+def plot_map(_data,_cmap,_vmin,_vmax,_levels,_ticklabels,_norm, _extend, _predictand_category, _cbar_label,_title, _annotation,_maskdata, _type, _filename, _overlayfile, _logofile, _plotbackground=False):
     _clip=False
     if _overlayfile: 
         overlay = geopandas.read_file(_overlayfile)
@@ -157,10 +158,18 @@ def plot_map(_data,_cmap,_vmin,_vmax,_levels,_ticklabels,_norm, _extend, _cbar_l
         _data.rio.set_spatial_dims("X","Y")
         _data=_data.rio.clip(overlay.geometry.values, "epsg:4326")
 
-    if _type=="prob-tercile":        
+    if _type=="prob-tercile":
+        if _predictand_category in ["maximum_temperature", "mean_temperature"]:
+            cmapabove="RdBu"
+            cmapbelow="RdBu_r"
+        else:
+            cmapabove="BrBG_r"
+            cmapbelow="BrBG"
+
+
         levels_dry=[33,40,50,60,70,100]
         ncat=len(levels_dry)
-        cmap_dry = plt.get_cmap("BrBG_r")
+        cmap_dry = plt.get_cmap(cmapabove)
         cols_dry = cmap_dry(np.linspace(0.5, 0.9, ncat-1))
         cmap_dry, norm_dry = colors.from_levels_and_colors(levels_dry, cols_dry, extend="neither")
         m_dry=_data.plot(cmap=cmap_dry, vmin=33,vmax=100, add_colorbar=False, norm=norm_dry, ax=pl)
@@ -176,7 +185,7 @@ def plot_map(_data,_cmap,_vmin,_vmax,_levels,_ticklabels,_norm, _extend, _cbar_l
 
         levels_wet=[433,440,450,460,470,500]
         ncat=len(levels_wet)
-        cmap_wet = plt.get_cmap("BrBG")
+        cmap_wet = plt.get_cmap(cmapbelow)
         cols_wet = cmap_wet(np.linspace(0.5, 0.9, ncat-1))
         cmap_wet, norm_wet = colors.from_levels_and_colors(levels_wet, cols_wet, extend="neither")
         m_wet=_data.plot(cmap=cmap_wet, vmin=433,vmax=500, add_colorbar=False, norm=norm_wet, ax=pl)

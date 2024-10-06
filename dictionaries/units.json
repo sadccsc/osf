@@ -1,4 +1,6 @@
-{"rainfall":"mm",
+{
+"onset":"days",
+"rainfall":"mm",
         "minimum_temperature":"degC",
         "maximum_temperature":"degC",
         "number_of_days":"days",

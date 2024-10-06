@@ -229,8 +229,8 @@ print("done")
 #
 
 #iterating through lead times
-#for lead_time in leadtimes[basetime]:
-for lead_time in [3]:
+for lead_time in leadtimes[basetime]:
+#for lead_time in [3]:
     print()
     print("----------------------------------")
     print("processing lead time: {}".format(lead_time))

@@ -56,7 +56,11 @@ for item in ${parameters[@]}; do
 	echo
 	echo "*********************************"
 	echo calling localpredictand.py with $args
-
-	python $scriptdir/prep_localprdctnd.py $args
+    if [ $variable == "onsetD" ]; then
+        echo onset
+	    python $scriptdir/prep_localprdctnd_onset.py $args
+    else
+	    python $scriptdir/prep_localprdctnd.py $args
+    fi
 done
 

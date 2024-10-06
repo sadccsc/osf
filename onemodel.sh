@@ -34,7 +34,7 @@ if [ $# == 3 ]; then
 else
     enddate=$(date +"%Y%m%d")
     currentday=$(date +"%d")
-    if [ $currentday -le 9 ]; then
+    if [ $currentday -le 5 ]; then
         enddate=$(date +"%Y%m%d" -d "$startdate - 1 months")
     fi
 fi
@@ -74,17 +74,17 @@ while [ "$cdate" -le $enddate ]; do
     echo current date: $cdate
 
     for item in ${parameters[@]}; do
-	item=(${item//,/ })
-	model=${item[0]}
-	predictorvar=${item[1]}
-	predictordomain=${item[2]}
-	predictandinstitution=${item[3]}
-	predictandvar=${item[4]}
-	predictanddomain=${item[5]}
-	mos=${item[6]}
-	basetime=${item[7]}
-	mask=${item[8]}
-	overwrite=${item[9]}
+        item=(${item//,/ })
+        model=${item[0]}
+        predictorvar=${item[1]}
+        predictordomain=${item[2]}
+        predictandinstitution=${item[3]}
+        predictandvar=${item[4]}
+        predictanddomain=${item[5]}
+        mos=${item[6]}
+        basetime=${item[7]}
+        mask=${item[8]}
+        overwrite=${item[9]}
 
         datadir=$rootdir/data
         mapdir=$rootdir/maps
@@ -93,8 +93,12 @@ while [ "$cdate" -le $enddate ]; do
         echo "*********************************"
         echo calling pycpt_singlemodel.py with $args
 
+        if [ $predictandvar == "onsetD" ]; then
 
-        python $scriptdir/onemodel.py $args
+            python $scriptdir/onemodel_onset.py $args
+        else
+            python $scriptdir/onemodel.py $args
+        fi
     done
     cdate=$(date +"%Y%m%d" -d "$cdate + 1 month")
     #exit

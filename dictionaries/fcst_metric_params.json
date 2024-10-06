@@ -1,4 +1,14 @@
 {
+ "onset": {
+          "det":
+          ["deterministic",0,"auto",10,"max","YlGnBu",0,"auto",10,"max","YlGnBu", "spearman","less than",0.3],
+         "det-absanom":
+          ["deterministic",-100,100,10,"both","BrBG",-100,100,10,"both","BrBG", "spearman","less than",0.3],
+         "det-percanom":
+          ["deterministic",-50,50,10,"both","BrBG",-50,50,10,"both","BrBG", "spearman","less than",0.3],
+         "prob-tercile":
+          ["probabilistic",0,100,10,"neither","BrBG",0,100,10,"neither","BrBG","genroc", "less than",0.5]},
+
  "rainfall": {
           "det":
           ["deterministic",0,"auto",10,"max","YlGnBu",0,"auto",10,"max","YlGnBu", "spearman","less than",0.3],

@@ -6,6 +6,8 @@
     "CHIRPS-v2.0-p05-merged.CDD":"CHIRPS v2.0",
     "CHIRPS-v2.0-p05-merged.Rx5day":"CHIRPS v2.0",
     "CHIRPS-v2.0-p05-merged.R20mm":"CHIRPS v2.0",
+    "CHIRPS-v2.0-p05-merged.onsetD":"CHIRPS v2.0",
+    "onsetD":"rainy season onset",
     "CDD":"consecutive dry days",
     "Rx5day":"maximum 5-day rainfall",
     "R20mm":"number of days with rainfall>20mm",

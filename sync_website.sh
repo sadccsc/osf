@@ -13,8 +13,8 @@ echo
 echo ---------------------------------------------------------------------------------------------
 echo syncing seasonal
 
-date=202408
-for var in PRCP TG CDD Rx5day; do
+date=202409
+for var in PRCP TG CDD Rx5day onsetD; do
     for model in SEAS51 CFSv2 GEOSS2S CCSM4; do 
         echo $var $model
         rsync -avog  maps/forecast/${model}/seas/sadc/${var}/${date}/* ftpdatapush@${wbsgas}:/var/www/html/media/data/rccsadc/csc/osf-seasonal
