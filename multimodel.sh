@@ -34,7 +34,7 @@ if [ $# == 3 ]; then
 else
     enddate=$(date +"%Y%m%d")
     currentday=$(date +"%d")
-    if [ $currentday -le 10 ]; then
+    if [ $currentday -le 5 ]; then
         enddate=$(date +"%Y%m%d" -d "$startdate - 1 months")
     fi
 fi

@@ -26,6 +26,18 @@ skill_metric_params_file="./dictionaries/skill_metric_params.json"
 units=parse_json(units_file)
 labels=parse_json(labels_file)
 
+onsetdefs={
+    "onsetA":["25 mm of accumulated rainfall in 10 days","Tadross et al. 2007"],
+    "onsetB":["25 mm of accumulated rainfall in 10 days, \nnot followed by a period of 10 consecutive days with observed rainfall < 2 mm in the following 20 days","??"],
+    "onsetC":["45 mm of accumulated rainfall in 4 days","??"],
+    "onsetD":["20mm threshold over 3 days and no dry spell in the next 10 days","??"]
+}
+
+
+accumdefs={
+    "seasaccum":{"summer":"Accumulation since the 1st of July"},
+    "onset":{"summer": "Calculated after the 1st of September"}
+}
 
 
 # in this dictionary, for consistency with skill_metric_params, there are two sets of color maps, but they should be identical, because colour maps do not change when masking for skill
@@ -33,12 +45,13 @@ fcst_metric_params=parse_json(fcst_metric_params_file)
 skill_metric_params=parse_json(skill_metric_params_file)
 
 
-def plot_forecast(_predictand_category, _fcstdata, _skilldata, _obsdata,_metric,_fcstvar_label, _basetime, _target_year_label, _target_seas, _initdate_label, _predictand_dataset_label, _first_hindcast_year, _last_hindcast_year, _overlayfile,_mapfile, _source,_do_mask):
-    #_metric is "internal" metric name used by this script and dictonaries. It is used to create meaningful file names
-    #_pycpt_metric_name - is name used in pycpt
-    #_maskmetric - is the "internal" code for mask used here
-    #_pycpt_maskmetric_name - is name of the metric used in pycpt
+def plot_forecast(_predictand_category, _predictand_var, _fcstdata, _skilldata, _obsdata,_metric, _basetime, _season_params, _predictand_dataset, _first_hindcast_year, _last_hindcast_year, _overlayfile,_mapfile, _fcst_model,_do_mask):
     #
+    #
+    #_metric is "internal" metric name used by this script and dictonaries. it is either a skill metric or forecast metric, i.e. one of det, det-abanom, det-percanom, prob-tercile. It is used to create meaningful file names.
+    #_pycpt_metric_name - is name used in pycpt output files
+    #_maskmetric - is the "internal" code for the metric that is used to mask the map
+    #_pycpt_maskmetric_name - is name of the metric used in pycpt
 
     if _metric in skill_metric_params:
         _pycpt_metric_name=skill_metric_params[_metric][0]
@@ -47,99 +60,136 @@ def plot_forecast(_predictand_category, _fcstdata, _skilldata, _obsdata,_metric,
     else:
         print("ERROR. Requested {} but only {} described in skill_metric_params and {} in fcst_metric_params".format(_metric, ",".join(list(skill_metric_params.keys())), ",".join(list(fcst_metric_params[_predictand_category].keys()))))
         sys.exit()
-
-    _metric_label=labels[_metric]
-
-    if _metric in ["det","det-absanom","det-percanom","prob-tercile"]:
-        #this is for all forecast maps
-        if _metric=="det":
-            _data=_fcstdata["deterministic"].copy()
-            _title="Forecast of {} in {} {}\nissued in {}".format(_fcstvar_label, _target_seas,_target_year_label, _initdate_label)
-
-        elif _metric=="det-absanom":
-            _data=_fcstdata["deterministic"].copy()-_obsdata.mean("T")
-            _title="Forecast of {} in {} {} (absolute anomaly) \nissued in {}".format(_fcstvar_label, _target_seas,_target_year_label, _initdate_label)
-
-        elif _metric=="det-percanom":
-            _data=(_fcstdata["deterministic"].copy()-_obsdata.mean("T"))/_obsdata.mean("T")*100
-            #overwriting the "general" value 
-            _cbar_label="% anomaly"
-            _title="Forecast of {} for {} {} (percent anomaly)\nissued in {}".format(_fcstvar_label, _target_seas,_target_year_label, _initdate_label)
-
-        elif _metric=="prob-tercile":
-            _data=_fcstdata["probabilistic"].copy()        
-            _datamax=_data==_data.max("C")
-            _data=_data.where(_datamax)
-            _data[1,:]=_data[1,:]+200
-            _data[2,:]=_data[2,:]+400
-            _data=_data.max("C")
-            _title="Probabilistic (tercile) forecast of {} for {} {}\nissued in {}".format(_fcstvar_label, _target_seas,_target_year_label, _initdate_label)
-
-        #common for all forecast metrics
-        _plotparams=get_plotparams(_data, _metric, _do_mask, fcst_metric_params[_predictand_category])
-        _cbar_label=units[_predictand_category]
-        _maskmetric=fcst_metric_params[_predictand_category][_metric][11]
-        _pycpt_maskmetric_name=skill_metric_params[_maskmetric][0]
-
-    else:
-        #this is for all skill maps
-        _data=_skilldata[_pycpt_metric_name].copy()
-        _plotparams=get_plotparams(_data, _metric, _do_mask,skill_metric_params)
-        _title="Forecast skill ({})\nfor forecast of {} in {} {}\nissued in {}".format(_metric_label, _fcstvar_label, _target_seas,_target_year_label, _initdate_label)
-        # skill will be masked by itself
-        _maskmetric=_metric
-        _pycpt_maskmetric_name=skill_metric_params[_maskmetric][0]
-        _cbar_label="score"
         
+    if _metric=="clim" and _do_mask:
+        print("we are not skill-masking climatology")
+    else: 
+        _metric_label=labels[_metric]
+        _fcstvar_label=labels[_predictand_var]
+
+        _predictand_dataset_label=labels[_predictand_dataset]
+        _initdate_label=_season_params["initdate_label"]
+
+        _annotation="Source: {} calibrated at SADC CSC".format(_fcst_model)
+        _maskdata=None
         
-    _annotation="Source: {} calibrated at SADC CSC\n".format(_source)
-    _maskdata=None
-    
-    if _do_mask:
-        print("masking...")
-        _maskdata=_skilldata[_pycpt_maskmetric_name].copy()
-        _masktype=skill_metric_params[_maskmetric][12]
-        _maskmetric_label=labels[_maskmetric]
-        #might need expanding, if there is a need to have a different mask some time in the future 
-        if _masktype=="less than":
-            _thresh=skill_metric_params[_maskmetric][13]
-            _maskdata=_maskdata>_thresh
-            _signlabel="less than {}".format(_thresh)
+        if _predictand_category in ["onset"]:
+            _regime="summer"
+            _annotation="{}\nDefinition: {}\n{}".format(_annotation, onsetdefs[_predictand_var][0], accumdefs[_predictand_category][_regime])
+            
+            _target_year_label=_season_params["target_rainy_season"]
+            _target_seas=""        
         else:
-            #might need expanding if other types are necessary
-            print("masktype:", _masktype)
-            cont=True
-            sys.exit()
-        _annotation="{}\nSkill evaluated by {} against {} data over {}-{} period".format(_annotation,_metric_label, _predictand_dataset_label, _first_hindcast_year,_last_hindcast_year)
-        _annotation="{}\nValues where {} is {} are masked out".format(_annotation,_maskmetric_label,_signlabel)
-        _data=_data.where(_maskdata)
+            _target_year_label=_season_params["target_year_label"]
+            _target_seas=_season_params["target_seas"]
 
-    print("plotting map")
+           
+            
+        if _metric in ["det","det-absanom","det-percanom","prob-tercile", "clim"]:
+            #this is for all forecast maps
+            if _metric=="det":
+                _data=_fcstdata["deterministic"].copy()
+                _title="Deterministic forecast \nof {} in {} {}\nissued in {}".format(_fcstvar_label, _target_seas,_target_year_label, _initdate_label)
 
-    plot_map(_data,
-                 _plotparams["cmap"],
-                 _plotparams["vmin"],
-                 _plotparams["vmax"],
-                 _plotparams["levels"],
-                 _plotparams["ticklabels"],
-                 _plotparams["norm"],
-                 _plotparams["extend"],
-                 _predictand_category,
-                 _cbar_label,
-                 _title,
-                 _annotation,
-                 _maskdata,
-                 _metric,
-                 _mapfile, 
-                 _overlayfile,
-                 logofile,
-                 _plotbackground=False)
+            elif _metric=="det-absanom":
+                _data=_fcstdata["deterministic"].copy()-_obsdata.mean("T").data
+                if _predictand_category=="onset":
+                    #converting days to dekads
+                    _data=_data/10
+                _title="Deterministic forecast \nof {} in {} {} (absolute anomaly) \nissued in {}".format(_fcstvar_label, _target_seas,_target_year_label, _initdate_label)
+
+            elif _metric=="det-percanom":
+                _data=(_fcstdata["deterministic"].copy()-_obsdata.mean("T").data)/_obsdata.mean("T").data*100
+                #overwriting the "general" value 
+                _cbar_label="% anomaly"
+                _title="Deterministic forecast \nof {} for {} {} (percent anomaly)\nissued in {}".format(_fcstvar_label, _target_seas,_target_year_label, _initdate_label)
+
+            elif _metric=="prob-tercile":
+                _data=_fcstdata["probabilistic"].copy()        
+                _datamax=_data==_data.max("C")
+                _data=_data.where(_datamax)
+                _data[1,:]=_data[1,:]+200
+                _data[2,:]=_data[2,:]+400
+                _data=_data.max("C")
+                _title="Probabilistic (tercile) forecast\nof {} for {} {}\nissued in {}".format(_fcstvar_label, _target_seas,_target_year_label, _initdate_label)
+
+            elif _metric=="clim":
+                _data=_obsdata.mean("T")
+                if _predictand_category=="onset":
+                    _title="Climatology of {}\n(over {}-{})".format(_fcstvar_label,  _first_hindcast_year, _last_hindcast_year)
+                else:
+                    _title="Climatology of {}\n(over {}-{})".format(_fcstvar_label, _target_seas,_first_hindcast_year, _last_hindcast_year)
+                    
+            #common for all forecast metrics
+            _plotparams=get_plotparams(_data, _metric, _do_mask, fcst_metric_params[_predictand_category],_predictand_category)
+            if _predictand_category=="onset" and _metric in ["det-absanom"]:
+                 _cbar_label="    dekads early     dekads late"
+            else:
+                _cbar_label=units[_predictand_category]
+            _maskmetric=fcst_metric_params[_predictand_category][_metric][11]
+            _pycpt_maskmetric_name=skill_metric_params[_maskmetric][0]
+
+        else:
+            #this is for all skill maps
+            _data=_skilldata[_pycpt_metric_name].copy()
+            _plotparams=get_plotparams(_data, _metric, _do_mask,skill_metric_params,_predictand_category)
+            _title="Forecast skill ({})\nfor forecast of {} in {} {}\nissued in {}".format(_metric_label, _fcstvar_label, _target_seas,_target_year_label, _initdate_label)
+            # skill will be masked by itself
+            _maskmetric=_metric
+            _pycpt_maskmetric_name=skill_metric_params[_maskmetric][0]
+            _cbar_label="score"
+            
+            
+        if _do_mask:
+            print("masking...")
+            _maskdata=_skilldata[_pycpt_maskmetric_name].copy()
+            _masktype=skill_metric_params[_maskmetric][12]
+            _maskmetric_label=labels[_maskmetric]
+            #might need expanding, if there is a need to have a different mask some time in the future 
+            if _masktype=="less than":
+                _thresh=skill_metric_params[_maskmetric][13]
+                _maskdata=_maskdata>_thresh
+                _signlabel="less than {}".format(_thresh)
+            else:
+                #might need expanding if other types are necessary
+                print("Only less than accepted as masktype at the moment. requested {}. exiting...".format(_masktype))
+                cont=True
+                sys.exit()
+            #adding skill mask info to annotation
+            _annotation="{}\nSkill evaluated by {} against {} data over {}-{} period".format(_annotation,_metric_label, _predictand_dataset_label, _first_hindcast_year,_last_hindcast_year)
+            _annotation="{}\nValues where {} is {} are masked out".format(_annotation,_maskmetric_label,_signlabel)
+            
+            #implementing mask
+            _data=_data.where(_maskdata)
+
+        print("plotting map")
+
+        plot_map(_data,
+                     _plotparams["cmap"],
+                     _plotparams["vmin"],
+                     _plotparams["vmax"],
+                     _plotparams["levels"],
+                     _plotparams["ticklabels"],
+                     _plotparams["norm"],
+                     _plotparams["extend"],
+                     _cbar_label,
+                     _title,
+                     _annotation,
+                     _maskdata,
+                     _metric,
+                     _predictand_category,
+                     _predictand_var,
+                     _mapfile, 
+                     _overlayfile,
+                     logofile,
+                     _plotbackground=False)
 
 
 
 
 
-def plot_map(_data,_cmap,_vmin,_vmax,_levels,_ticklabels,_norm, _extend, _predictand_category, _cbar_label,_title, _annotation,_maskdata, _type, _filename, _overlayfile, _logofile, _plotbackground=False):
+def plot_map(_data,_cmap,_vmin,_vmax,_levels,_ticklabels,_norm, _extend, _cbar_label,_title, _annotation,_maskdata, _metric, _predictand_category,_predictand_var, _filename, _overlayfile, _logofile, _plotbackground=False):
+    
     _clip=False
     if _overlayfile: 
         overlay = geopandas.read_file(_overlayfile)
@@ -152,28 +202,44 @@ def plot_map(_data,_cmap,_vmin,_vmax,_levels,_ticklabels,_norm, _extend, _predic
     if _maskdata is not None:
         _data=_data.where(_maskdata)
 
-    if _clip:    
+    if _clip:
+       # print(_data)
         #clip grid to polygon
         _data=_data.rio.write_crs("epsg:4326")
         _data.rio.set_spatial_dims("X","Y")
         _data=_data.rio.clip(overlay.geometry.values, "epsg:4326")
 
-    if _type=="prob-tercile":
-        if _predictand_category in ["maximum_temperature", "mean_temperature"]:
-            cmapabove="RdBu"
-            cmapbelow="RdBu_r"
+    if _metric=="prob-tercile":
+        if _predictand_category=="onset":
+            _cmap_above="BrBG_r"
+            _cmap_below="BrBG"
+        elif _predictand_category=="rainfall":
+            if _predictand_var=="Rx5day":
+                _cmap_above="BrBG_r"
+                _cmap_below="BrBG"
+            else:
+                _cmap_above="BrBG"
+                _cmap_below="BrBG_r"
         else:
-            cmapabove="BrBG_r"
-            cmapbelow="BrBG"
-
-
+            _cmap_above="RdYlBu_r"
+            _cmap_below="RdYlBu"
+            
+        if _predictand_category =="onset":
+            cbar_label_dry="probablity [%]\nearlier\nthan normal"
+            cbar_label_norm="probablity [%]\nnormal"
+            cbar_label_wet="probablity [%]\nlater\nthan normal"
+        else:
+            cbar_label_dry="probablity [%]\nbelow normal"
+            cbar_label_norm="probablity [%]\nnormal"
+            cbar_label_wet="probablity [%]\nabove normal"
+            
         levels_dry=[33,40,50,60,70,100]
         ncat=len(levels_dry)
-        cmap_dry = plt.get_cmap(cmapabove)
+        cmap_dry = plt.get_cmap(_cmap_below)
         cols_dry = cmap_dry(np.linspace(0.5, 0.9, ncat-1))
         cmap_dry, norm_dry = colors.from_levels_and_colors(levels_dry, cols_dry, extend="neither")
         m_dry=_data.plot(cmap=cmap_dry, vmin=33,vmax=100, add_colorbar=False, norm=norm_dry, ax=pl)
-        cbar_label_dry="probablity [%]\nbelow normal"
+
 
         levels_norm=[233,240,250,270,300]
         ncat=len(levels_norm)
@@ -181,15 +247,13 @@ def plot_map(_data,_cmap,_vmin,_vmax,_levels,_ticklabels,_norm, _extend, _predic
         cols_norm = cmap_norm(np.linspace(0, 0.5, ncat-1))
         cmap_norm, norm_norm = colors.from_levels_and_colors(levels_norm, cols_norm, extend="neither")
         m_norm=_data.plot(cmap=cmap_norm, vmin=233,vmax=300, add_colorbar=False, norm=norm_norm, ax=pl)
-        cbar_label_norm="probablity [%]\nnormal"
 
         levels_wet=[433,440,450,460,470,500]
         ncat=len(levels_wet)
-        cmap_wet = plt.get_cmap(cmapbelow)
+        cmap_wet = plt.get_cmap(_cmap_above)
         cols_wet = cmap_wet(np.linspace(0.5, 0.9, ncat-1))
         cmap_wet, norm_wet = colors.from_levels_and_colors(levels_wet, cols_wet, extend="neither")
         m_wet=_data.plot(cmap=cmap_wet, vmin=433,vmax=500, add_colorbar=False, norm=norm_wet, ax=pl)
-        cbar_label_wet="probablity [%]\nabove normal"
         
         
         #legends
@@ -232,7 +296,7 @@ def plot_map(_data,_cmap,_vmin,_vmax,_levels,_ticklabels,_norm, _extend, _predic
             cbar.ax.set_yticklabels(_ticklabels)
             cbar.ax.tick_params(labelsize=8)
             cbar.ax.tick_params(size=0)
-            
+            cbar.set_label(_cbar_label, labelpad=-10)            
             
     pl.set_title(_title, fontsize=9)
 
@@ -250,7 +314,6 @@ def plot_map(_data,_cmap,_vmin,_vmax,_levels,_ticklabels,_norm, _extend, _predic
     overlay.boundary.plot(ax=pl, linewidth=0.3, color="0.1")
 
     
-
     pl.text(0,-0.01,_annotation,fontsize=6, transform=pl.transAxes, va="top")
     
     plt.subplots_adjust(bottom=0.06,top=0.95,right=0.8,left=0.05)
@@ -287,16 +350,29 @@ def get_cmap(_data, _cmap, _vmin,_vmax,_ncat,_centre, _extend):
 
 
         
-def get_plotparams(_data,_metric, do_mask,_params):
-    if _metric in _params.keys():
-        plotvarCode,vmin,vmax,ncat,extend,cmap,mask_vmin,mask_vmax,mask_ncat,mask_extend,mask_cmap,maskvar,masktype,maskthresh=_params[_metric]
-        if do_mask:
-            paramdict=get_cmap(_data,mask_cmap,mask_vmin,mask_vmax,mask_ncat,None,mask_extend)
-        else:
-            paramdict=get_cmap(_data,cmap,vmin,vmax,ncat,None,extend)
+def get_plotparams(_data,_metric, do_mask,_params,_predictand_category):
+    if( _predictand_category=="onset") & (_metric in ["det", "clim"]):
+        _vmin,_vmax=0,180
+        _cols= ["#224E96","#2E67AF","#4284C4","#59A3D7","#73BAE5","#8ECFF0","#8BBD9F","#A3C38F","#CBE0B7","#EAEFAA","#FBE884","#FDD76D","#FAB446","#F3692A","#E95029","#DE3828", "#C91E26","#B01A20","#921519"]
+        _levels = [0,10,20,30,40,50,60,70,80,90,100,110,120,130,140,150,160,170,180]
+        _cmap, _norm = colors.from_levels_and_colors(_levels, _cols, extend="max")
+        _ticklevels = [0,30,60,90,120,150]
+        _ticklabels=[ 'Sep', 'Oct', 'Nov', 'Dec', 'Jan',"Feb    ."]
+        _units="dekad"
+        _extend="max"
+        paramdict={"cmap":_cmap, "levels":_ticklevels, "vmin":_vmin, "vmax":_vmax,"ticklabels":_ticklabels, "norm":_norm, "extend":_extend, "units":_units}
+                            
     else:
-        print("ERROR. {} not in parameter dictionary (get_plotparams())".format(_metric))
-        sys.exit()
+        if _metric in _params.keys():
+            plotvarCode,vmin,vmax,ncat,extend,cmap,mask_vmin,mask_vmax,mask_ncat,mask_extend,mask_cmap,maskvar,masktype,maskthresh=_params[_metric]
+            #print(_metric,plotvarCode,vmin,vmax)
+            if do_mask:
+                paramdict=get_cmap(_data,mask_cmap,mask_vmin,mask_vmax,mask_ncat,None,mask_extend)
+            else:
+                paramdict=get_cmap(_data,cmap,vmin,vmax,ncat,None,extend)
+        else:
+            print("ERROR. {} not in parameter dictionary (get_plotparams())".format(_metric))
+            sys.exit()
         
     return(paramdict)
 
@@ -321,6 +397,7 @@ def neat_vmax(_vmax,_ncat):
     finalvmax=finalvmax*10**nofzeros
     return(finalvmax)
        
+
 
 
 

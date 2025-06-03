@@ -9,11 +9,4 @@ fi
 
 date=$1
 
-for model in SEAS51 CCSM4 CFSv2 GEOSS2S; do
-    echo 
-    for var in PRCP Rx5day CDD TG; do
-        n=`ls data/forecast/$model/seas/sadc/$var/$date-*/*/output/*forecasts.nc |wc -l`
-
-        echo $model $var $n
-    done
-done
+ls -lsa data/forecast/*/seas/sadc/*/$date-*/*/output/*forecasts.nc

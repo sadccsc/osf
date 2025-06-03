@@ -83,19 +83,20 @@ while [ "$cdate" -le $enddate ]; do
         predictanddomain=${item[5]}
         mos=${item[6]}
         basetime=${item[7]}
-        mask=${item[8]}
-        overwrite=${item[9]}
+        regime=${item[8]}
+        mask=${item[9]}
+        overwrite=${item[10]}
 
         datadir=$rootdir/data
         mapdir=$rootdir/maps
-        args="$datadir $mapdir $model $predictorvar $predictordomain $predictandinstitution $predictandvar $predictanddomain $mos $cdate $basetime $mask $overwrite"
+        args="$datadir $mapdir $model $predictorvar $predictordomain $predictandinstitution $predictandvar $predictanddomain $mos $cdate $basetime $regime $mask $overwrite"
         echo
         echo "*********************************"
         echo calling pycpt_singlemodel.py with $args
 
         if [ $predictandvar == "onsetD" ]; then
 
-            python $scriptdir/onemodel_onset.py $args
+            python $scriptdir/onemodel.py $args
         else
             python $scriptdir/onemodel.py $args
         fi

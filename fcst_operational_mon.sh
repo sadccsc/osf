@@ -13,5 +13,5 @@ ABSDIR=$(dirname $ABSPATH)
 
 #downloading individual datasets
 $ABSDIR/onemodel.sh onemodel_operational_mon.lst
-$ABSDIR/multimodel.sh multimodel_perational_mon.lst
+$ABSDIR/multimodel.sh multimodel_operational_mon.lst
 

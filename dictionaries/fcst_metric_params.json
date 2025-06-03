@@ -1,15 +1,16 @@
 {
  "onset": {
+          "clim":
+          ["deterministic",0,"auto",10,"max","YlGnBu_r",0,"auto",10,"max","YlGnBu_r", "spearman","less than",0.3],
           "det":
-          ["deterministic",0,"auto",10,"max","YlGnBu",0,"auto",10,"max","YlGnBu", "spearman","less than",0.3],
+          ["deterministic",0,"auto",10,"max","YlGnBu_r",0,"auto",10,"max","YlGnBu_r", "spearman","less than",0.3],
          "det-absanom":
-          ["deterministic",-100,100,10,"both","BrBG",-100,100,10,"both","BrBG", "spearman","less than",0.3],
-         "det-percanom":
-          ["deterministic",-50,50,10,"both","BrBG",-50,50,10,"both","BrBG", "spearman","less than",0.3],
+          ["deterministic",-5,5,10,"both","BrBG_r",-5,5,10,"both","BrBG_r", "spearman","less than",0.3],
          "prob-tercile":
           ["probabilistic",0,100,10,"neither","BrBG",0,100,10,"neither","BrBG","genroc", "less than",0.5]},
-
  "rainfall": {
+          "clim":
+          ["deterministic",0,"auto",10,"max","YlGnBu",0,"auto",10,"max","YlGnBu", "spearman","less than",0.3],
           "det":
           ["deterministic",0,"auto",10,"max","YlGnBu",0,"auto",10,"max","YlGnBu", "spearman","less than",0.3],
          "det-absanom":
@@ -18,7 +19,10 @@
           ["deterministic",-50,50,10,"both","BrBG",-50,50,10,"both","BrBG", "spearman","less than",0.3],
          "prob-tercile":
           ["probabilistic",0,100,10,"neither","BrBG",0,100,10,"neither","BrBG","genroc", "less than",0.5]},
- "number_of_days": {"det":
+ "number_of_days": {
+         "clim":
+          ["deterministic",0,50,10,"max","YlGnBu",0,50,10,"max","YlGnBu", "spearman","less than",0.3],
+         "det":
           ["deterministic",0,50,10,"max","YlGnBu",0,50,10,"max","YlGnBu", "spearman","less than",0.3],
          "det-absanom":
           ["deterministic",-10,10,10,"both","BrBG",-10,10,10,"both","BrBG", "spearman","less than",0.3],
@@ -26,7 +30,10 @@
           ["deterministic",-50,50,10,"both","BrBG",-50,50,10,"both","BrBG", "spearman","less than",0.3],
          "prob-tercile":
           ["probabilistic",0,100,10,"neither","BrBG",0,100,10,"neither","BrBG","genroc", "less than",0.5]},
- "max_daily_rainfall": {"det":
+ "max_daily_rainfall": {
+          "clim":
+          ["deterministic",0,50,10,"max","YlGnBu",0,50,10,"max","YlGnBu", "spearman","less than",0.3],
+          "det":
           ["deterministic",0,50,10,"max","YlGnBu",0,50,10,"max","YlGnBu", "spearman","less than",0.3],
          "det-absanom":
           ["deterministic",-10,10,10,"both","BrBG",-10,10,10,"both","BrBG", "spearman","less than",0.3],
@@ -34,13 +41,19 @@
           ["deterministic",-50,50,10,"both","BrBG",-50,50,10,"both","BrBG", "spearman","less than",0.3],
          "prob-tercile":
           ["probabilistic",0,100,10,"neither","BrBG",0,100,10,"neither","BrBG","genroc", "less than",0.5]},
- "maximum_temperature": {"det":
+ "maximum_temperature": {
+         "clim":
+          ["deterministic",10,30,10,"max","Reds",10,30,10,"max","Reds", "spearman","less than",0.3],
+         "det":
           ["deterministic",10,30,10,"max","Reds",10,30,10,"max","Reds", "spearman","less than",0.3],
          "det-absanom":
           ["deterministic",-2,2,10,"both","RdBu_r",-2,2,10,"both","RdBu_r", "spearman","less than",0.3],
          "prob-tercile":
           ["probabilistic",20,40,10,"neither","BrBG",20,40,10,"neither","BrBG","genroc", "less than",0.5]},
- "mean_temperature": {"det":
+ "mean_temperature": {
+         "clim":
+          ["deterministic",10,30,10,"max","Reds",10,30,10,"max","Reds", "spearman","less than",0.3],
+         "det":
           ["deterministic",10,30,10,"max","Reds",10,30,10,"max","Reds", "spearman","less than",0.3],
          "det-absanom":
           ["deterministic",-2,2,10,"both","RdBu_r",-2,2,10,"both","RdBu_r", "spearman","less than",0.3],

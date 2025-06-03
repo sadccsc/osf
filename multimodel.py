@@ -369,16 +369,20 @@ for lead_time in leadtimes[basetime]:
         os.makedirs(outputdir)
         
     #unfortunately, the file name that comes out of pycpt is not very informative, and we cannot change it, because edits in pycpt code would get lost after version update, so unfortunately, we have to live with this
-    fcstfile="{}/output/MME_deterministic_forecast_{}.nc".format(str(fcstdir), season_params["fyear"])
+    fcstfile="{}/output/MME_deterministic_forecast_{}.nc".format(str(fcstdir), season_params["pycpt_target_year"])
     #now processing the forecast
 
     dset=xr.open_dataset(predictandfile)
     ncvar=obs_ncvars[predictand_name][0]
     Y=dset[ncvar]
     dset.close()
-
+    fcstfileexists=os.path.exists(fcstfile)
+    print(fcstfile)
+    print("overwrite",overwrite)
+    print("fileexists",fcstfileexists)
+    
  
-    if overwrite or (not os.path.exists(fcstfile)):
+    if overwrite or (not fcstfileexists):
         print("processing forecast to {}".format(fcstfile))
         det_fcst, pr_fcst, pev_fcst, nextgen_skill = pycpt.construct_mme(fcsts, hcstsovlp, Y, ensemble, predictor_names, cpt_args, fcstdir)
 
@@ -401,12 +405,12 @@ for lead_time in leadtimes[basetime]:
         nextgen_skill=dset.copy()
         dset.close()
 
-        detfcstfile="{}/output/MME_deterministic_forecast_{}.nc".format(str(fcstdir), season_params["fyear"])
+        detfcstfile="{}/output/MME_deterministic_forecast_{}.nc".format(str(fcstdir), season_params["pycpt_target_year"])
         dset=xr.open_dataset(detfcstfile)
         det_fcst=dset.copy()
         dset.close()
 
-        probfcstfile="{}/output/MME_probabilistic_forecast_{}.nc".format(str(fcstdir), season_params["fyear"])
+        probfcstfile="{}/output/MME_probabilistic_forecast_{}.nc".format(str(fcstdir), season_params["pycpt_target_year"])
         dset=xr.open_dataset(probfcstfile)
         pr_fcst=dset.copy()
         dset.close()
@@ -462,16 +466,14 @@ for lead_time in leadtimes[basetime]:
                 print("plotting {}...".format(mapfile))
                 fun.plot_forecast(
                    predictand_category,
+                   predictand_var,
                    fcstdata,
                    nextgen_skill,
                    Y,
                    metric,
-                   fcstvar_label,
                    basetime,
-                   season_params["target_year_label"], 
-                   target_seas,
-                   season_params["initdate_label"],
-                   predictand_dataset_label, 
+                   season_params, 
+                   predictand_name, 
                    first_hindcast_year,
                    last_hindcast_year,
                    overlayfile,
@@ -491,17 +493,15 @@ for lead_time in leadtimes[basetime]:
                 print("Plotting...")
                 
                 fun.plot_forecast(
+                   predictand_category,
                    predictand_var,
                    fcstdata,
                    nextgen_skill,
                    Y,
                    metric,
-                   fcstvar_label,
                    basetime,
-                   season_params["target_year_label"], 
-                   target_seas,
-                   season_params["initdate_label"],
-                   predictand_dataset_label,
+                   season_params, 
+                   predictand_name,
                    first_hindcast_year,
                    last_hindcast_year,
                    overlayfile,

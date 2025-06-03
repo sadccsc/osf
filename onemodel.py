@@ -1,23 +1,12 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[18]:
-
-
-#!/usr/bin/env python
-# coding: utf-8
-
-# In[1]:
-
-
-#!/usr/bin/env python
-# coding: utf-8
-
 # ============================================================================================
 # importing libraries
 
 # original libraries from IRI version
 import pycpt
+import cptio as cio
 import packaging
 min_version = '2.5.0'
 assert packaging.version.parse(pycpt.__version__) >= packaging.version.parse(min_version), f'This notebook requires version {min_version} or higher of the pycpt library, but you have version {pycpt.__version__}. Please close the notebook, update your environment, and load the notebook again. See https://iri-pycpt.github.io/installation/'
@@ -37,15 +26,13 @@ import matplotlib.colors as colors
 import matplotlib.pyplot as plt
 
 # libraries added to support functionality at CSC
-import os,sys
+import os,sys,shutil
 import importlib
 import functions_plot as fun
 importlib.reload(fun)
 from functions_pycpt import *
 import json
 import glob
-
-# In[23]:
 
 
 # ============================================================================================
@@ -57,6 +44,7 @@ import glob
 #in operational setting - these are the only values that will have to change from month to month
 #
 parse_args=True
+
 if parse_args:
     datadir=sys.argv[1]
     mapdir=sys.argv[2]
@@ -69,44 +57,41 @@ if parse_args:
     MOS=sys.argv[9]
     init_date=sys.argv[10]
     basetime=sys.argv[11]
-    skill_mask_code=sys.argv[12]
-    overwrite=bool(int(sys.argv[13]))
+    regime=sys.argv[12]
+    skill_mask_code=sys.argv[13]
+    overwrite=bool(int(sys.argv[14]))
 else:
-    datadir="../data"
+    datadir="/work/projects/intraACP/automated_processing/data"
     mapdir="../maps"
     model="SEAS51"
     predictor_var="SST"
     predictor_domain="nino34"
-    predictand_institution="UCSB"
-    predictand_var="PRCP"
+    predictand_institution="CHIRPS-v2.0-p05-merged"
+    predictand_var="onsetD"
+    predictand_institution="ERA5"
+    predictand_var="TX"
     predictand_domain="sadc"
-    MOS="CCA"
-    init_date="2024-05-01"
+    MOS="PCR"
+    init_date="2024-09-01"
     basetime="seas"
+    regime="summer"
     skill_mask_code="both"
     overwrite=False
     
-# In[29]:
+# In[29]: 
 
 
 # ============================================================================================
 # forecast parameters defined "in script"
 #
 # first and last year of the hindcast. This is set here to be the same for each forecast model, but potentially can be diversified between models
-first_hindcast_year,last_hindcast_year=1991,2023
+first_hindcast_year,last_hindcast_year=1991,2020
 
 #is where all data - inputs and outputs are going to be stored. Sub-directory structure will be created automatically in this root directory to capture target domain, predictand, models, initializtion date, target season etc...
 # this one has to be changed/adjusted if scripts are moved or a different directory structure is used
 fcstrootdir="{}/forecast/{}".format(datadir,model)
 localpredictandrootdir="{}/local_predictand".format(datadir)
 maprootdir="{}/forecast/{}".format(mapdir,model)
-
-
-predictor_domain_file="./dictionaries/predictor_domains.json"
-predictand_domain_file="./dictionaries/predictand_domains.json"
-obs_ncvars_file="./dictionaries/obs_ncvars.json"
-labels_file="./dictionaries/labels.json"
-local_predictands_file="./dictionaries/local_predictands.json"
 
 
 #this defines level of messages that this script is going to return to log
@@ -123,6 +108,33 @@ force_download = False
 #whether forecast calibration is done intgeractively
 interactive = False
 
+
+
+
+#defining dictionaries with parameters
+predictor_domain_file="./dictionaries/predictor_domains.json"
+predictand_domain_file="./dictionaries/predictand_domains.json"
+obs_ncvars_file="./dictionaries/obs_ncvars.json"
+labels_file="./dictionaries/labels.json"
+local_predictands_file="./dictionaries/local_predictands.json"
+
+
+# reading dictionaries before proceeding...
+
+local_predictands=parse_json(local_predictands_file)
+obs_ncvars=parse_json(obs_ncvars_file)
+labels=parse_json(labels_file)
+
+fcst_model=read_dict(labels,model,"labels")
+full_model_name="{} model".format(fcst_model)
+
+predictand_dataset="{}.{}".format(predictand_institution,predictand_var)
+temp=read_dict(obs_ncvars,predictand_dataset,"obs_ncvars")
+
+predictand_category=temp[1]
+
+print("predictand_category",predictand_category)
+
 #these skill metrics will be plotted:
 #names correspond to skill metrics available in the output of pycpt.evaluate_models()
 skill_metrics_to_plot = [
@@ -133,29 +145,12 @@ skill_metrics_to_plot = [
         "2afc"
 ]
 
-
-# reading dictionaries before proceeding...
-
-local_predictands=parse_json(local_predictands_file)
-obs_ncvars=parse_json(obs_ncvars_file)
-labels=parse_json(labels_file)
-source=read_dict(labels,model,"labels")
-full_source_name="{} model".format(source)
-
-
-
+#skill_metrics_to_plot = [
+#]
 
 #these forecast metrics will be plotted
 #these names are "bespoke", implemented in this script only, they are not "native" to pycpt
 #defined as a function of predictand
-
-predictand_name="{}.{}".format(predictand_institution,predictand_var)
-temp=read_dict(obs_ncvars,predictand_name,"obs_ncvars")
-
-#predictand_category=obs_ncvars[predictand_name][1]
-predictand_category=temp[1]
-
-print("category",predictand_category)
 
 if predictand_category=="rainfall":
     fcst_outputs_to_plot=[
@@ -164,16 +159,47 @@ if predictand_category=="rainfall":
         "det-percanom",
         "prob-tercile"]
 else:
-    fcst_outputs_to_plot=["det",
+    fcst_outputs_to_plot=[
+        "det",
         "det-absanom",
-        "prob-tercile"]
+        "prob-tercile",
+        "clim"
+    ]
 
+    
 #these lead time will be calculated for different basetimes
 leadtimes={"seas": [0,1,2,3],
         "mon": [0,1,2,3,4]}
 
+
+
+# this defines month from which onset data are taken - effectively the last month of the season when onset is still relevant
+onsetmonths={"summer":3,"winter":8}
+
+if predictand_category=="onset":
+    onsetobsmonth=onsetmonths[regime]
   
     
+# ============================================================================================
+# setting internal parameters of pycpt
+# 
+
+#these are user-defined, so they have to be set here explicitly rather than later in the middle of other code
+cpt_args = { 
+    'transform_predictand': None,  # transformation to apply to the predictand dataset - None, 'Empirical', 'Gamma'
+    'tailoring': None,  # tailoring None, 'Anomaly'
+    'cca_modes': (1,3), # minimum and maximum of allowed CCA modes 
+    'x_eof_modes': (1,8), # minimum and maximum of allowed X Principal Componenets 
+    'y_eof_modes': (1,6), # minimum and maximum of allowed Y Principal Components 
+    'validation': 'crossvalidation', # the type of validation to use; only 'crossvalidation' is supported for now
+    'drymask': False, #whether or not to use a drymask of -999
+    'scree': True, # whether or not to save % explained variance for eof modes
+    'crossvalidation_window': 5,  # number of samples to leave out in each cross-validation step 
+    'synchronous_predictors': True, # whether or not we are using 'synchronous predictors'
+}
+
+
+
 # ============================================================================================
 #
 # defining dictionaries and functions
@@ -183,7 +209,6 @@ leadtimes={"seas": [0,1,2,3],
 #
   
 
- 
 #this sets up whether plotting is done with and/or without mask
 skillmasks={"no":[[False,""]],
 "yes":[[True,"-m"]],
@@ -202,49 +227,33 @@ predictor_domain_params = get_domain_params(predictor_domain_file,predictor_doma
 predictand_domain_params,overlayfile = get_domain_params(predictand_domain_file,predictand_domain)
 
 
-
-predtxt="{}.{}".format(predictand_institution,predictand_var)
-
 #catching possible errors... 
-if predtxt not in labels.keys():
-    print("ERROR: There is no entry for requested predictand in labels dictionary: {}".format(predtxt))
+if predictand_dataset not in labels.keys():
+    print("ERROR: There is no entry for requested predictand in labels dictionary: {}".format(predictand_dataset))
     sys.exit()
     
-predictand_dataset_label=labels[predtxt]
-
 #catching possible errors... 
 if predictand_var not in labels.keys():
     print("ERROR: There is no entry for requested predictand variable in labels dictionary: {}".format(predictand_var))
     sys.exit()
 
-fcstvar_label=labels[predictand_var]
+
+
+months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 
 
 
 
-
-    
 # ============================================================================================
-# setting internal parameters of pycpt
+#checks
 #
 
-#these are user-defined, so they have to be set here explicitly rather than later in the middle of other code
-cpt_args = { 
-    'transform_predictand': None,  # transformation to apply to the predictand dataset - None, 'Empirical', 'Gamma'
-    'tailoring': None,  # tailoring None, 'Anomaly'
-    'cca_modes': (1,3), # minimum and maximum of allowed CCA modes 
-    'x_eof_modes': (1,8), # minimum and maximum of allowed X Principal Componenets 
-    'y_eof_modes': (1,6), # minimum and maximum of allowed Y Principal Components 
-    'validation': 'crossvalidation', # the type of validation to use; only 'crossvalidation' is supported for now
-    'drymask': False, #whether or not to use a drymask of -999
-    'scree': True, # whether or not to save % explained variance for eof modes
-    'crossvalidation_window': 5,  # number of samples to leave out in each cross-validation step 
-    'synchronous_predictors': True, # whether or not we are using 'synchronous predictors'
-}
-print("done")
-
-# In[31]:
-
+#onset forecast only on seasonal, not monthly basis
+if predictand_category=="onset":
+    if basetime != "seas":
+        print("onset forecast only possible on seasonal basis. reguested {}. exiting...".format(basetime))
+        sys.exit()
+    
 
 # ============================================================================================
 #
@@ -252,21 +261,20 @@ print("done")
 #
 
 #iterating through lead times
+print(leadtimes[basetime])
+
 for lead_time in leadtimes[basetime]:
 #for lead_time in [0]:
     print()
     print("----------------------------------")
     print("processing lead time: {}".format(lead_time))
     
-    #processing forecast date and target information
+    #processing forecast date and target information, it has to be done for each lead time
     #this returns a dictionary
     season_params = get_season_params(lead_time, init_date, basetime)
  
     if verbose:
         print("season parameters:\n",season_params)
-
-    # this is target season's code, e.g. JFM
-    target_seas=season_params["target_seas"]
 
     # To read predictand data from a local file instead,
     # set local_predictand_file to the full pathname of the file. e.g.
@@ -278,35 +286,42 @@ for lead_time in leadtimes[basetime]:
     local_predictand_file = None
 
     if verbose:
-        print("predictand:", predictand_name)
-
-    if predictand_name in local_predictands["code"]:
-        # internal parameter of pycpt - if set, then local file is used as predictand
-        local_predictand_file = "{}/{}/{}/{}/{}/{}.{}_{}.tsv".format(localpredictandrootdir,predictand_institution,basetime,predictand_domain,predictand_var,predictand_var,predictand_institution,target_seas)
+        print("predictand:", predictand_dataset)
+        
+    # predictands sourced from local resource and not from IRI are defined in the local_predictands dictionary
+    if predictand_dataset in local_predictands["code"]:
+        if predictand_category=="onset":
+            monthname=months[onsetobsmonth-1]
+            # internal parameter of pycpt - if set, then local file is used as predictand in the pycpt calibration function
+            local_predictand_file = "{}/{}/mon/{}/{}/{}.{}_{}.tsv".format(localpredictandrootdir,predictand_institution,predictand_domain,predictand_var,predictand_var,predictand_institution, monthname)
+        else:
+            local_predictand_file = "{}/{}/{}/{}/{}/{}.{}_{}.tsv".format(localpredictandrootdir,predictand_institution,basetime,predictand_domain,predictand_var,predictand_var,predictand_institution,season_params["target_seas"])
+            
         print("using local predictand {}".format(local_predictand_file))
         
         if not os.path.exists(local_predictand_file):
             print("ERROR: Local predictand file does not exist: {}".format(local_predictand_file))
             sys.exit()
     else:
-        print("using predictand from IRI: {}".format(predictand_name))
-        if predictand_name not in dl.observations.keys():
-            print("ERROR. Could not find predictand {}".format(predictand_name))
+        print("using predictand from IRI: {}".format(predictand_dataset))
+        if predictand_dataset not in dl.observations.keys():
+            print("ERROR. Could not find predictand in IRI DL: {}".format(predictand_dataset))
             sys.exit()
         
     # Use dl.observations.keys() to see all options for predictand 
     # and dl.hindcasts.keys() to see all options for predictors.
+
     # Make sure your first_year & final_year are compatible with 
     # your selections for your predictors and predictands.
 
-    predictor_name="{}.{}".format(model,predictor_var)
+    predictor_dataset="{}.{}".format(model,predictor_var)
 
     if verbose:
-        print("predictor:", predictor_name)
+        print("predictor:", predictor_dataset)
 
     #checking if predictors and predictand are defined correctly
-    if predictor_name not in dl.hindcasts.keys():
-        print("ERROR. Could not find predictor {}".format(predictor_name))
+    if predictor_dataset not in dl.hindcasts.keys():
+        print("ERROR. Could not find predictor {}".format(predictor_dataset))
         sys.exit()
         
     #checking if root directory exists
@@ -321,7 +336,7 @@ for lead_time in leadtimes[basetime]:
                                  predictand_domain,
                                  predictand_var,
                                  season_params["fdate"].strftime("%Y%m"),
-                                 target_seas,
+                                 season_params["target_seas"],
                                  predictor_var,
                                  predictor_domain)
     # In[14]:
@@ -331,7 +346,7 @@ for lead_time in leadtimes[basetime]:
     # into three subdirectories in that dir, namely output, data and figures. In the original PyCPT, this directory 
     # structure is set up by pycpt.setup(), but here we have our own definition, so that the forecast directory structure 
     # corresponds to directory structure adopted in CSIS 
-    #this is is basically what pycpt.setup() does:
+    # this is is basically what pycpt.setup() does:
     for subdir in ["output","data","figures"]:
         adir="{}/{}".format(fcstdir,subdir)
         if not os.path.exists(adir):
@@ -420,18 +435,18 @@ for lead_time in leadtimes[basetime]:
     # ============================================================================================
     # downloading data
     #
-    # there is no need to check overwrite parameter, as this is defined by force_download
-    print(predictand_name)
+    print(predictand_dataset)
     print(local_predictand_file)
-    print(predictor_name)
+    print(predictor_dataset)
     print(download_args)
     print(fcstdir)
     print(force_download)
-    
 
+    # the section below checks if predictand file for given target season has already been downloaded from IRI library when processing a different model.
+    # if so - then it is symlinked rather than downloaded again.
     if not local_predictand_file:
         print("checking if predictand file already available")
-        predictand_file="{}/data/{}.nc".format(fcstdir,predictand_name)
+        predictand_file="{}/data/{}.nc".format(fcstdir,predictand_dataset)
         print("checking for {}".format(predictand_file))
 
         if os.path.exists(predictand_file):
@@ -455,6 +470,9 @@ for lead_time in leadtimes[basetime]:
     else:
         print("local file requested, skipping check for downloaded file")
 
+
+    # similarly to the above - this section does the same with the predictor hidcast file
+    # hindcast file would already be downloaded if the same predictor was used to generate forecast for a different predictand.
     print("checking if hindcast file already available")
     hindcast_file="{}/data/{}.{}.nc".format(fcstdir,model,predictor_var)
     print("checking for {}".format(hindcast_file))
@@ -478,39 +496,58 @@ for lead_time in leadtimes[basetime]:
                     print("symlink created")
                     break
 
-    # now downloading...
+    #copying local predictand file to forecast directory
+    if local_predictand_file:
+        #saving local predictand into the case_dir, just to have the predictor file saved in the same directory as forecasts
+        #local predictand file is saved into forecast directory without the target season code
+        #now, if pycpt.download_data was called with local predictand file, then it would have created variable Y to be used in pycpt.evaluate_models
+        predictand_file="{}/data/{}.nc".format(str(fcstdir),predictand_dataset)
+        if force_download or (not os.path.exists(predictand_file)):
+            data=cio.open_cptdataset(local_predictand_file)
+            data.to_netcdf(predictand_file)
+#            shutil.copy(local_predictand_file,predictand_file)
+            #Y.to_netcdf(predictand_file)
+
+
+    # now downloading data. The symlinked files won't be downloaded, because pycpt will see them as existing already
     try:
-        Y, hindcast_data, forecast_data = pycpt.download_data(predictand_name, local_predictand_file, [predictor_name], download_args, fcstdir, force_download)
-        predictand_file=predictand_name
+        print("attempting to download files...")
+        Y, hindcast_data, forecast_data = pycpt.download_data(predictand_dataset, local_predictand_file, [predictor_dataset], download_args, fcstdir, force_download)
     except:
         print("ERROR. could not download data. check if there is access to internet. exiting...")
         sys.exit()
 
-    if local_predictand_file:
-        #saving local predictand into the case_dir, just to have the predictor file saved in the same directory as forecasts
-        predictand_file="{}/data/{}.nc".format(str(fcstdir),predictand_name)
-        if force_download or (not os.path.exists(predictand_file)):
-            Y.to_netcdf(predictand_file)
-
     # ============================================================================================
     # calibrating forecast
     #
-    fcstfile="{}/output/{}_realtime_{}_forecasts.nc".format(str(fcstdir), predictor_name, MOS.lower())
+    # checking if forecast already available. Checking just one file out of the all cpt output files
+    fcstfile="{}/output/{}_realtime_{}_forecasts.nc".format(str(fcstdir), predictor_dataset, MOS.lower())
 
-    if overwrite or (not os.path.exists(fcstfile)):
-        print("processing forecast to {}".format(fcstfile))
-        hcsts, fcsts, skill, pxs, pys = pycpt.evaluate_models(hindcast_data, MOS, Y, forecast_data, cpt_args, fcstdir, [predictor_name], interactive)
-        calibrated=True
 
-        print("here")
-        print(fcsts[0])
-        print("here")
-
+    fileexists= os.path.exists(fcstfile)
+    if fileexists:
+        fileisempty=os.path.getsize(fcstfile)==0
     else:
-        calibrated=False
-        print("Forecast file {} exists. skipping calibration...".format(fcstfile)) 
+        fileisempty=False
+    print("overwrite",overwrite)
+    print("fileexists",fileexists)
+    print("not fileexists",not fileexists)
+    print("fileisempty",fileisempty)
 
-    predictand_file="{}/data/{}.nc".format(fcstdir,predictand_name)        
+    if overwrite or not fileexists or fileisempty:
+        print("calibrating forecast to {}".format(fcstfile))
+        #sys.exit()
+        hcsts, fcsts, skill, pxs, pys = pycpt.evaluate_models(hindcast_data, MOS, Y, forecast_data, cpt_args, fcstdir, [predictor_dataset], interactive)
+        #apparently - for plotting one has to read the file rather than keep variables from here
+        data_objects_available=False
+
+        print("finished calibrating forecast")
+    else:
+        data_objects_available=False
+        print("Forecast file {} exists. Skipping calibration...".format(fcstfile)) 
+
+    #this might be redundant
+    predictand_file="{}/data/{}.nc".format(fcstdir,predictand_dataset)        
 
     # ============================================================================================
     # plotting figures
@@ -518,37 +555,38 @@ for lead_time in leadtimes[basetime]:
 
 
     # ============================================================================================
-    # this is not strictly necessary in operational, but can potentially be run if needed
+    # this is not strictly necessary in operational, but can potentially be run if needed. do_plot_* booleans are defined in the parameters section above
     #
-    #    if do_plot_eof_modes:
-    #        pycpt.plot_eof_modes(MOS, [predictor_name], pxs, pys, domain_dir)
+    if do_plot_eof_modes:
+        pycpt.plot_eof_modes(MOS, [predictor_dataset], pxs, pys, domain_dir)
 
-    #    if MOS=="CCA" and do_plot_cca_modes==True:
-    #        pycpt.plot_cca_modes(MOS, [predictor_name], pxs, pys, domain_dir)
+    if MOS=="CCA" and do_plot_cca_modes==True:
+        pycpt.plot_cca_modes(MOS, [predictor_dataset], pxs, pys, domain_dir)
 
-    if not calibrated:
+    # plotting requires hindcast, obs and forecast data objects. Since calibration is done only when output files do not exist, in order to plot previously calibrated dat
+    if not data_objects_available:
         print("Opening forecast files...")
-        skillfile="{}/output/{}_skillscores_{}.nc".format(str(fcstdir), predictor_name, MOS.lower())
+        skillfile="{}/output/{}_skillscores_{}.nc".format(str(fcstdir), predictor_dataset, MOS.lower())
         dset=xr.open_dataset(skillfile)
         skill=[dset]
         dset.close()
 
-        fcstfile="{}/output/{}_realtime_{}_forecasts.nc".format(str(fcstdir), predictor_name, MOS.lower())
+        fcstfile="{}/output/{}_realtime_{}_forecasts.nc".format(str(fcstdir), predictor_dataset, MOS.lower())
         dset=xr.open_dataset(fcstfile)
         fcsts=[dset]
         dset.close()
 
-        hcstfile="{}/output/{}_crossvalidated_{}_hindcasts.nc".format(str(fcstdir), predictor_name, MOS.lower())
+        hcstfile="{}/output/{}_crossvalidated_{}_hindcasts.nc".format(str(fcstdir), predictor_dataset, MOS.lower())
         dset=xr.open_dataset(hcstfile)
         hcsts=[dset]
         dset.close()
 
         dset=xr.open_dataset(predictand_file)
-        ncvar=obs_ncvars[predictand_name][0]
+        ncvar=obs_ncvars[predictand_dataset][0]
         Y=dset[ncvar]
         dset.close()
 
-        calibrated=True
+        data_objects_available=True
             
     #defining directory to store maps
     mapdir="{}/{}/{}/{}/{}".format(maprootdir,basetime,predictand_domain,predictand_var,season_params["fdate"].strftime("%Y%m"))
@@ -566,28 +604,26 @@ for lead_time in leadtimes[basetime]:
     for metric in fcst_outputs_to_plot:
         for do_mask, mask_label in skillmasks[skill_mask_code]: 
             print("\nchecking {}{} ...".format(metric, mask_label))
-        
-            mapfile="{}/{}_{}{}_{}_{}-{}_{}_{}.jpg".format(mapdir,predictand_var, metric,mask_label,predictor_name.split(".")[0],predictor_name.split(".")[1],MOS,season_params["initdate"], season_params["target_seas"])
+            
+            mapfile="{}/{}_{}{}_{}_{}-{}_{}_{}.jpg".format(mapdir,predictand_var, metric,mask_label,model,predictor_var,MOS,season_params["initdate"], season_params["target_seas"])
 
             if (not os.path.exists(mapfile)) or overwrite:
                 print("plotting {}...".format(mapfile))
                 fun.plot_forecast(
                    predictand_category,
+                   predictand_var,
                    fcsts[0],
                    skill[0],
                    Y,
                    metric,
-                   fcstvar_label,
                    basetime,
-                   season_params["target_year_label"], 
-                   target_seas,
-                   season_params["initdate_label"],
-                   predictand_dataset_label, 
+                   season_params,
+                   predictand_dataset, 
                    first_hindcast_year,
                    last_hindcast_year,
                    overlayfile,
                    mapfile,
-                   source,
+                   fcst_model,
                    do_mask)
                 print("written {}".format(mapfile))
             else:
@@ -597,31 +633,26 @@ for lead_time in leadtimes[basetime]:
         for do_mask, mask_label in skillmasks[skill_mask_code]: 
             print("\nchecking {}{} ...".format(metric, mask_label))        
 
-            mapfile="{}/{}_{}{}_{}_{}-{}_{}_{}.jpg".format(mapdir,predictand_var, metric,mask_label,predictor_name.split(".")[0],predictor_name.split(".")[1],MOS,season_params["initdate"], season_params["target_seas"])
+            mapfile="{}/{}_{}{}_{}_{}-{}_{}_{}.jpg".format(mapdir,predictand_var, metric,mask_label,model,predictor_var,MOS,season_params["initdate"], season_params["target_seas"])
             if (not os.path.exists(mapfile)) or overwrite:
                 print("Plotting...")
                 
                 fun.plot_forecast(
+                   predictand_category,
                    predictand_var,
                    fcsts[0],
                    skill[0],
                    Y,
                    metric,
-                   fcstvar_label,
                    basetime,
-                   season_params["target_year_label"], 
-                   target_seas,
-                   season_params["initdate_label"],
-                   predictand_dataset_label,
+                   season_params, 
+                   predictand_dataset,
                    first_hindcast_year,
                    last_hindcast_year,
                    overlayfile,
                    mapfile,
-                   source,
+                   fcst_model,
                    do_mask)
                 print("written {}".format(mapfile))
             else:
                 print("map file exists. skipping...")
-
-
-

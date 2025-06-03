@@ -8,17 +8,17 @@
 # these are members of the adopted ensemble
 #
 #rainfall on monthly base time
-SEAS51,SST,global,UCSB,PRCP,sadc,PCR,mon,both,0
-CFSv2,SST,global,UCSB,PRCP,sadc,PCR,mon,both,0
-CCSM4,SST,global,UCSB,PRCP,sadc,PCR,mon,both,0
-GEOSS2S,SST,global,UCSB,PRCP,sadc,PCR,mon,both,0
+SEAS51,SST,global,UCSB,PRCP,sadc,PCR,mon,summer,both,0
+CFSv2,SST,global,UCSB,PRCP,sadc,PCR,mon,summer,both,0
+CCSM4,SST,global,UCSB,PRCP,sadc,PCR,mon,summer,both,0
+GEOSS2S,SST,global,UCSB,PRCP,sadc,PCR,mon,summer,both,0
 #
 
 # air temperature on monthly time scale 
-SEAS51,T2M,sadc,ERA5,TG,sadc,PCR,mon,both,0
-CFSv2,T2M,sadc,ERA5,TG,sadc,PCR,mon,both,0
-CCSM4,T2M,sadc,ERA5,TG,sadc,PCR,mon,both,0
-GEOSS2S,T2M,sadc,ERA5,TG,sadc,PCR,mon,both,0
+SEAS51,T2M,sadc,ERA5,TG,sadc,PCR,mon,summer,both,0
+CFSv2,T2M,sadc,ERA5,TG,sadc,PCR,mon,summer,both,0
+CCSM4,T2M,sadc,ERA5,TG,sadc,PCR,mon,summer,both,0
+GEOSS2S,T2M,sadc,ERA5,TG,sadc,PCR,mon,summer,both,0
 
 #
 # these can potentially be included in the ensemble, but they are discontinued on IRI and the replacements ones are not yet available

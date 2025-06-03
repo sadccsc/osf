@@ -43,7 +43,7 @@ else:
     domain="sadc"
     basetime="mon"
     variable="onsetD"
-    spatialaggrfactor=5
+    spatialaggrfactor=20
 
 overwrite=False
 
@@ -54,7 +54,7 @@ firstyear=1991
 lastyear=2020
 
 if basetime not in ["mon"]:
-    print("ERROR. Basetime can only be mon or seas. requested {}".format(basetime))
+    print("ERROR. Basetime can only be mon. requested {}".format(basetime))
     sys.exit()
     
 #input and output directories
@@ -71,10 +71,10 @@ if not os.path.exists(outputdir):
     
 #reading input data
 #input data are to be monthly and for the target domain and resolution
-#
 
 searchpattern="{}/{}_mon_{}_{}_*03.nc".format(inputdir,variable,institution,domain)
 files=glob.glob(searchpattern)
+
 
 data=xr.open_mfdataset(files)
 data=data.sel(time=slice(str(firstyear),str(lastyear)))
@@ -86,12 +86,29 @@ if len(data.time.data)<len(dates):
     print("ERROR. Data missing. There should be {} in data period of {} to {} got {} months".format(len(dates), pd.to_datetime(data.time[0].data), pd.to_datetime(data.time[-1].data), len(data.time.data)))
     sys.exit()
 
+
+if variable in ["onsetD"]:
+    maxonset=200
+    data2=data[variable].compute()
+    data3=data2.where(data2>0,maxonset)
+    data3=data3.where(~np.isnan(data2))
+    data[variable]=data3
+
+#    nyears=10 #years with valid data
+#    include=((data1[variable]>-99).sum("T")>=nyears)
+#    data1[variable]=data1[variable].where(include)
+#    data1[variable].where(data1[variable]>0)
+
+    cont=True
+
+
 #check
 if spatialaggrfactor>1:
     data=data.coarsen(lat=spatialaggrfactor).mean().coarsen(lon=spatialaggrfactor).mean()
 
 if "spatial_ref" in data.variables:
     data=data.drop_vars({"spatial_ref"})
+
 
 
 #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -119,6 +136,8 @@ data1=data1.rename({"lon":"X", "lat":"Y", "time":"T"})
 #adding attributes
 data1[variable].attrs={"missing":missingvalue, "units":"degC"}
 
+
+
 #defining outputfile
 outputfile="{}/{}.{}_{}.tsv".format(outputdir,variable,institution,seasonname)
 
@@ -143,6 +162,4 @@ if writefile:
     print("written",outputfile)
 
 
-
-# In[ ]:
 
